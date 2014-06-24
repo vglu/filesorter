@@ -15,46 +15,42 @@ import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 
-import static java.nio.file.StandardCopyOption.*;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 
 class FilesForMove {
     private List<String> fileList;
 
-    public void setFileList(List<String> _fileList)
-    {
+    public void setFileList(List<String> _fileList) {
         fileList = _fileList;
     }
 
-    public int makeMove(String _destination, boolean _overwriteExisting)
-    {
-        ListIterator<String>    listIterator    = fileList.listIterator();
-        int                     ret             = 0;
+    public int makeMove(String _destination, boolean _overwriteExisting) {
+        ListIterator<String> listIterator = fileList.listIterator();
+        int ret = 0;
 
         while (listIterator.hasNext()) {
             String tmpFileName = listIterator.next();
-            this.copyFile(tmpFileName, _destination, _overwriteExisting);
-            ret++;
+            if (this.copyFile(tmpFileName, _destination, _overwriteExisting))
+                ret++;
         }
         return ret;
     }
 
-    public static List<String> scanFolder(String _fromFolder, boolean _recursiveSearch)
-    {
+    public static List<String> scanFolder(String _fromFolder, boolean _recursiveSearch) {
         File directory = new File(_fromFolder);
 
-        String [] directoryContents = directory.list();
+        String[] directoryContents = directory.list();
 
         List<String> fileLocations = new ArrayList<String>();
 
-        for(String fileName: directoryContents) {
-            File temp = new File(String.valueOf(directory),fileName);
+        for (String fileName : directoryContents) {
+            File temp = new File(String.valueOf(directory), fileName);
             if (temp.isDirectory()) {
                 if (_recursiveSearch) {
                     fileLocations.addAll(FilesForMove.scanFolder(String.valueOf(temp), true));
                 }
-            }
-            else {
+            } else {
                 fileLocations.add(String.valueOf(temp));
             }
         }
@@ -62,11 +58,12 @@ class FilesForMove {
         return fileLocations;
     }
 
-    private void copyFile(String tmpFileName, String destination, boolean _overwriteExesting) {
-        File    sourceFile      = new File(tmpFileName);
-        Path    sourcePath      = Paths.get(tmpFileName);
-        String  sourceFileName  = sourceFile.getName();
-        String  destinationFolder;
+    private boolean copyFile(String tmpFileName, String destination, boolean _overwriteExesting) {
+        File sourceFile = new File(tmpFileName);
+        Path sourcePath = Paths.get(tmpFileName);
+        String sourceFileName = sourceFile.getName();
+        String destinationFolder;
+        boolean ret = false;
 
         BasicFileAttributes attributes = null;
         try {
@@ -75,9 +72,8 @@ class FilesForMove {
             e.printStackTrace();
         }
         if (attributes != null) {
-            destinationFolder = destination + "\\" + this.convertFileTimeToDate(attributes.lastModifiedTime());
-        }
-        else {
+            destinationFolder = destination + File.separator + this.convertFileTimeToDate(attributes.lastModifiedTime());
+        } else {
             throw new Error();
         }
 
@@ -86,27 +82,21 @@ class FilesForMove {
             if (!Files.isDirectory(destinationPath)) {
                 this.createNewDirectory(destinationPath);
             }
-        }
-        else {
+        } else {
             this.createNewDirectory(destinationPath);
         }
-        Path destinationFile = Paths.get(destinationFolder + "\\" + sourceFileName);
+        Path destinationFile = Paths.get(destinationFolder + File.separator + sourceFileName);
 
         try {
             //Files.copy(sourcePath, destinationFile);
-            if (!Files.exists(destinationFile)) {
-                Files.move(sourcePath, destinationFile);
+            if (!Files.exists(destinationFile) || _overwriteExesting) {
+                Files.move(sourcePath, destinationFile, REPLACE_EXISTING);
+                ret = true;
             }
-            else
-            {
-                if (_overwriteExesting) {
-                    Files.move(sourcePath, destinationFile, REPLACE_EXISTING);
-                }
-            }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return ret;
     }
 
     private void createNewDirectory(Path destinationPath) {
@@ -117,19 +107,18 @@ class FilesForMove {
         }
     }
 
-    String convertFileTimeToDate(FileTime _creationTime)
-    {
-        Date    date;
-        String  strDate = null;
-        String  crTimeString =_creationTime.toString();
+    String convertFileTimeToDate(FileTime _creationTime) {
+        Date date;
+        String strDate = null;
+        String crTimeString = _creationTime.toString();
 
         SimpleDateFormat formatter;
-        formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS");
-
+        formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        crTimeString = crTimeString.substring(0, 19);
         try {
-            date        = formatter.parse(crTimeString.substring(0, 24));
-            formatter   = new SimpleDateFormat("yyyy-MM-dd");
-            strDate     = formatter.format(date);
+            date = formatter.parse(crTimeString);
+            formatter = new SimpleDateFormat("yyyy-MM-dd");
+            strDate = formatter.format(date);
         } catch (ParseException e) {
             e.printStackTrace();
         }

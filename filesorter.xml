@@ -10,7 +10,7 @@
           <entry key="sourceFolder" value="C:\Users\vgl\Pictures\Panasonic"/>
           <entry key="destinationFolder" value="C:\Users\vgl\Pictures\Updated"/>
           <entry key="incrementalSearch" value="true"/>
-          <entry key="overwriteExistingFiles" value="false"/>
+          <entry key="overwriteExisting" value="true"/>
         </map>
       </node>
     </node>

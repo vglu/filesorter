@@ -1,6 +1,9 @@
 package com.company;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
@@ -36,8 +39,6 @@ class FileProcessor {
     }
 
 
-
-
     void createDefaultPref() {
         Preferences pref = Preferences.userNodeForPackage(String.class);
         pref.put(sourceFolder, sourceFolder);
@@ -69,14 +70,14 @@ class FileProcessor {
 
         Preferences node;
 
-        node            = Preferences.userRoot().node("java");
-        node            = node.node("lang");
-        fromFolder      = node.get(sourceFolder, "");
-        toFolder        = node.get(destinationFolder, "");
+        node = Preferences.userRoot().node("java");
+        node = node.node("lang");
+        fromFolder = node.get(sourceFolder, "");
+        toFolder = node.get(destinationFolder, "");
         this.setSubfolderSearch(node.getBoolean(incrementalSearch, true));
         this.setOverwriteExistingFiles(node.getBoolean(overwriteExisting, true));
 
-        if (fromFolder.length() != 0 && toFolder.length() != 0 ) {
+        if (fromFolder.length() != 0 && toFolder.length() != 0) {
             File file = new File(fromFolder);
             if (file.exists()) {
                 ret = true;
@@ -85,13 +86,11 @@ class FileProcessor {
         return ret;
     }
 
-    public String getFromFolder()
-    {
+    public String getFromFolder() {
         return fromFolder;
     }
 
-    public  String getToFolder()
-    {
+    public String getToFolder() {
         return toFolder;
     }
 }
